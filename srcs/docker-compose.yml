@@ -1,0 +1,5 @@
+services:
+  mariadb:
+    build:
+      #context -> Folder containing the Dockerfile of this container
+      context: ./requirements/mariadb
