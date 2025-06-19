@@ -1,5 +1,27 @@
 services:
   mariadb:
     build:
-      #context -> Folder containing the Dockerfile of this container
+      #context -> Folder containing the dockerfile of this container
       context: ./requirements/mariadb
+      #dockerfile -> name of dockerfile in that context
+      dockerfile: Dockerfile
+    #container_name -> name of the created container
+    container_name: mariadb
+    #image -> name_of_image:tag
+    image: mariadb:debian-bullseye
+    #if the container stops, it will restart, unless we manually stopped it
+    restart: unless-stopped
+
+    #List of files with environment variables to load
+    env_file:
+      - .env
+
+    #Defines where in the container the volume is stored.
+    #host_machine_directory:container_directory
+    volumes:
+      - /home/margarida/data/mariadb:/var/lib/mysql
+      #The most portable version would be to use named_volumes
+      #Named volumes would be defined, for example -> mariadb:/var/lib/mysql
+      #We have to use a bind mount to because the subject requires the volumes to be stored in /home/login/data
+
+    
