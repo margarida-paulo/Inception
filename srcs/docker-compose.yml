@@ -1,30 +1,28 @@
+volumes:
+  mariadb:
+    name: mariadb
+    driver: local
+    driver_opts:
+      device: /home/margarida/data/mariadb
+      o: bind
+      type: none
+
 services:
   mariadb:
-    build:
-      #context -> Folder containing the dockerfile of this container
-      context: ./requirements/mariadb
-      #dockerfile -> name of dockerfile in that context
-      dockerfile: Dockerfile
-    #container_name -> name of the created container
+    image: mariadb
     container_name: mariadb
-    #image -> name_of_image:tag
-    image: mariadb:debian-bullseye
-    #if the container stops, it will restart, unless we manually stopped it
-    restart: unless-stopped
-
-    #List of files with environment variables to load
-    env_file:
-      - .env
-
-    #Defines where in the container the volume is stored.
-    #host_machine_directory:container_directory
+    build:
+      context: ./requirements/mariadb
+      dockerfile: Dockerfile
+    env_file: .env
     volumes:
-      - /home/margarida/data/mariadb:/var/lib/mysql
-      #The most portable version would be to use named_volumes
-      #Named volumes would be defined, for example -> mariadb:/var/lib/mysql
-      #We have to use a bind mount because the subject requires the volumes to be stored in /home/login/data
-    
-    #Exposes port 3306 inside the network
+      - mariadb:/var/lib/mysql
+    restart: unless-stopped
     expose:
-    - "3306"
-    
+      - "3306"
+    networks:
+      - inception
+
+networks:
+  inception:
+    driver: bridge

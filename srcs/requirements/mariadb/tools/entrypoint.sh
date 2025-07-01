@@ -1,31 +1,22 @@
 #!/bin/bash
-
-#If a command fails, stop the entire script from running!
 set -e
 
-#Standard directory for mysql data
-DB_DATA="/var/lib/mysql"
+DB_DATA_DIR="/var/lib/mysql"
+DB_INIT_MARKER="$DB_DATA_DIR/.db_initialized"
 
-#Setting up the database
-echo "MariaDB: Bootstrap..."
+echo "⏳ Starting MariaDB bootstrap..."
 
-#The skip networking starts the MariaDB without opening network ports, so that the setup is safer
-#& makes it run in the background
-mysqld --user=mysql --skip-networking --datadir="$DB_DATA" &
-
-#Stores the pid of the process we just put in the background
+# Start mysqld in background for setup
+mysqld --user=mysql --skip-networking --datadir="$DB_DATA_DIR" &
 pid="$!"
 
-#Waits for the mysql to be ready
-until mysqladmin ping; do
+# Wait for server to be ready
+until mysqladmin ping --silent; do
     sleep 1
 done
 
-#Checks for a root password
-ROOT_PASSWD_SET = $(mysql -u root -e "SELECT authentication_string FROM mysql.user WHERE user='root' AND host='localhost';" -s -N)
-
-if [! -f "ROOT_PASSWD_SET"]; then
-    echo "Setting up database"
+if [ ! -f "$DB_INIT_MARKER" ]; then
+    echo "✅ First-time DB setup..."
 
     mysql -u root <<EOF
 CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
@@ -35,14 +26,15 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASSWORD}';
 FLUSH PRIVILEGES;
 EOF
 
-    echo "Database initialized!"
+    touch "$DB_INIT_MARKER"
+    echo "📌 Database initialized."
 else
-    echo "Existing database detected, skipping initialization"
+    echo "📁 Existing database detected. Skipping initialization."
 fi
 
-echo "Shutting down bootstrap MariaDB"
+# Shutdown the bootstrap process
 mysqladmin -u root -p"${DB_ROOT_PASSWORD}" shutdown
 wait "$pid"
 
-echo "Starting MariaDB in production mode"
+echo "🚀 Starting MariaDB in production mode..."
 exec mysqld
