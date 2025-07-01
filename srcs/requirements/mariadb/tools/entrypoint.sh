@@ -1,40 +1,45 @@
 #!/bin/bash
+
+# Script stops if command fails
 set -e
 
-DB_DATA_DIR="/var/lib/mysql"
-DB_INIT_MARKER="$DB_DATA_DIR/.db_initialized"
+DATA="/var/lib/mysql" # Where data will be stored
+DB_INITIALIZED="$DATA/.db_initialized" # Flag file, if exists, mariaDB is setup already
 
-echo "⏳ Starting MariaDB bootstrap..."
+if [ ! -f "$DB_INITIALIZED" ]; then
 
-# Start mysqld in background for setup
-mysqld --user=mysql --skip-networking --datadir="$DB_DATA_DIR" &
-pid="$!"
+    echo "MariaDB: Bootstrapping..."
 
-# Wait for server to be ready
-until mysqladmin ping --silent; do
-    sleep 1
-done
+    #   Start mysql daemon in background without network connection (safer for setup)
+    mysqld --user=mysql --skip-networking --datadir="$DATA" &
+    initialization_pid="$!"
 
-if [ ! -f "$DB_INIT_MARKER" ]; then
-    echo "✅ First-time DB setup..."
+    # Wait for the server to be ready
+    until mysqladmin ping --silent; do
+        sleep 1
+    done
+
+    echo "Setting up database"
 
     mysql -u root <<EOF
 CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;
 CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
 GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';
-ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASSWORD}';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 FLUSH PRIVILEGES;
 EOF
 
-    touch "$DB_INIT_MARKER"
-    echo "📌 Database initialized."
+    touch "$DB_INITIALIZED"
+    echo "Database correctly initialized."
+    mysqladmin -u root -p"${DB_ROOT_PASSWORD}" shutdown
+    
+    #Wait for the process to fully finish to avoid a race condition
+    wait "$initialization_pid"
 else
-    echo "📁 Existing database detected. Skipping initialization."
+    echo "Database was already setup, proceed without initializing."
 fi
 
-# Shutdown the bootstrap process
-mysqladmin -u root -p"${DB_ROOT_PASSWORD}" shutdown
-wait "$pid"
+echo "MariaDB: Production mode"
 
-echo "🚀 Starting MariaDB in production mode..."
+#Execute mysqld in the foreground
 exec mysqld

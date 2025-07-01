@@ -2,6 +2,7 @@ DOCKER_COMPOSE = srcs/docker-compose.yml
 MY_VOLUMES_DIRS = ./srcs/data/mdb ./srcs/data/wp
 VOLUMES_DIRS = /home/margarida/data/mariadb /home/margarida/data/wordpress
 
+CONTAINER := $(filter-out exec,$(MAKECMDGOALS))
 
 all: up
 
@@ -9,6 +10,13 @@ up:
 	mkdir -p $(VOLUMES_DIRS)
 	docker compose -f $(DOCKER_COMPOSE) up -d --build
 
+exec:
+	@if [ -z "$(CONTAINER)" ]; then \
+		echo "Usage: make exec <container_name>"; \
+	else \
+		echo "Entering bash of container $(CONTAINER)..."; \
+		docker exec -it $(CONTAINER) /bin/bash; \
+	fi
 
 clean:
 	docker compose -f $(DOCKER_COMPOSE) down --rmi all
@@ -50,5 +58,7 @@ hosts:
 		echo "✅  margarida.42.fr already exists in /etc/hosts"; \
 	fi
 	
+help:
 
-.phony: hosts migrate_data logs status start stop re ResetAll clean up all
+
+.phony: hosts migrate_data logs status start stop re ResetAll clean up all help
