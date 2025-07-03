@@ -31,7 +31,7 @@ EOF
 
     touch "$DB_INITIALIZED"
     echo "Database correctly initialized."
-    mysqladmin -u root -p"${DB_ROOT_PASSWORD}" shutdown
+    mysqladmin -u root -p"${MYSQL_ROOT_PASSWORD}" shutdown
     
     #Wait for the process to fully finish to avoid a race condition
     wait "$initialization_pid"
@@ -42,4 +42,9 @@ fi
 echo "MariaDB: Production mode"
 
 #Execute mysqld in the foreground
-exec mysqld
+#bind-address -> Makes sure mariadb listens on all available network interfaces
+#character-set and collation-server -> Set recommended character enconding for modern WordPress
+exec mysqld \
+    --bind-address=0.0.0.0 \
+    --character-set-server=utf8mb4 \
+    --collation-server=utf8mb4_general_ci 

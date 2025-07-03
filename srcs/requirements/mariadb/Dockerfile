@@ -12,8 +12,6 @@ RUN apt-get update &&\
 #Make the directory for the mariadb data
 RUN mkdir -p /var/lib/mysql && chown -R mysql:mysql /var/lib/mysql
 
-RUN mariadb_install_db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
-
 RUN mkdir -p /run/mysqld && chown -R mysql:mysql /run/mysqld
 
 #Copy files from the host to the image

@@ -37,13 +37,32 @@ fi
 
 #Install wordpress if not installed
 #Skip the notification email
-if [ ! wp core is-installed --allow-root ]; then
+if ! wp core is-installed --allow-root ; then
     echo "Wordpress not installed - installing now..."
     wp core install \
-        --url="$WEBSITE_WP" \
+        --url="$WP_WEBSITE" \
         --title="$DOMAIN_NAME" \
-        --admin_user="$ADMIN_WP" \
-        --admin_password="$ADMIN_PS" \
-        --admin_email="$ADMIN_EMAIL" \
+        --admin_user="$WP_ADMIN" \
+        --admin_password="$WP_ADMIN_PASS" \
+        --admin_email="$WP_ADMIN_EMAIL" \
         --skip-email \
         --allow-root
+
+    wp user create "$WP_USER2" "$WP_USER2_EMAIL" \
+        --user_pass="$WP_USER2_PASS" \
+        --role=author \
+        --allow-root
+    
+    echo "Installing theme..."
+    wp theme install "silverstorm" --activate --allow-root
+
+else
+    echo "Wordpress installation detected - skipped installation"
+fi
+
+echo "Changing ownership of files to ensure permissions..."
+chown -R www-data:www-data /var/www/html
+
+echo "Running website..."
+#Runs the php-fpm, which listens to requests and sends the output
+exec php-fpm7.4 -F

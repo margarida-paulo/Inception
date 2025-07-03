@@ -9,9 +9,9 @@ RUN apt update
 
 #apt-get -> More used in scripts, more predictable behaviour
 # -y option -> Answer yes to the confirmation prompt automatically
-RUN apt-get install -y openssl nginx 
+RUN apt-get install -y openssl nginx &&\
+    apt-get clean &&\
+    rm -rf /var/lib/apt/lists/*
 
-#apt clean -> Deletes packages used in the installation and that are no longer needed
-RUN apt clean
 
 #TO BE CONTINUED
