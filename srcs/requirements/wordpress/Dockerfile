@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND=noninteractive
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/*
 
-#Copy script
+#Copy script from host to image
 COPY tools/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
@@ -24,4 +24,5 @@ RUN sed -i "s|^listen = .*|listen = 9000|" /etc/php/7.4/fpm/pool.d/www.conf
 
 EXPOSE 9000
 
+#Runs the script
 ENTRYPOINT ["bash", "-c", "/entrypoint.sh"]

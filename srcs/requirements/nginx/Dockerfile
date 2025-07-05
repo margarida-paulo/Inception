@@ -13,5 +13,21 @@ RUN apt-get install -y openssl nginx &&\
     apt-get clean &&\
     rm -rf /var/lib/apt/lists/*
 
+#Create the SSL certificate
+#keyout -> Where to save the private key
+#out -> Where to save the certificate (public key + info)
+#subj -> Certificate details
+RUN mkdir -p /etc/nginx/ssl && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout /etc/nginx/ssl/selfsigned.key \
+    -out /etc/nginx/ssl/selfsigned.crt \
+    -subj "/C=PT/ST=Lisbon/L=Lisbon/O=42/OU=Inception/CN=margarida"
 
-#TO BE CONTINUED
+#Copy the nginx conf file from host to image, in the standard folder where nginx looks for conf files
+COPY conf/nginx.conf /etc/nginx/conf.d/nginx.conf
+
+EXPOSE 443
+
+# Start nginx in the foreground so that the container keeps running
+#CMD can be overridden if developers want to
+CMD ["nginx", "-g", "daemon off;"]

@@ -22,4 +22,5 @@ RUN chmod +x /entrypoint.sh
 #EXPOSE is used for documentation, doesn't actually open the port.
 EXPOSE 3306
 
+#Runs the script
 ENTRYPOINT ["bash", "-c", "/entrypoint.sh"]

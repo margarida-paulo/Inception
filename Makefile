@@ -6,10 +6,12 @@ CONTAINER := $(filter-out exec,$(MAKECMDGOALS))
 
 all: up
 
+#Rebuilds the images, and, if the images changed, recreates the container.
 up:
 	mkdir -p $(VOLUMES_DIRS)
 	docker compose -f $(DOCKER_COMPOSE) up -d --build
 
+#Gets into the bash of a specific container
 exec:
 	@if [ -z "$(CONTAINER)" ]; then \
 		echo "Usage: make exec <container_name>"; \
@@ -18,11 +20,9 @@ exec:
 		docker exec -it $(CONTAINER) /bin/bash; \
 	fi
 
+#Stops and removes all containers, deletes images
 clean:
 	docker compose -f $(DOCKER_COMPOSE) down --rmi all
-
-ResetAll: 
-	docker compose -f $(DOCKER_COMPOSE) down --rmi all -v
 	rm -rf $(VOLUMES_DIRS)
 
 re: clean up
