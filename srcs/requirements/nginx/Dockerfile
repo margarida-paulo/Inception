@@ -21,7 +21,7 @@ RUN mkdir -p /etc/nginx/ssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/nginx/ssl/selfsigned.key \
     -out /etc/nginx/ssl/selfsigned.crt \
-    -subj "/C=PT/ST=Lisbon/L=Lisbon/O=42/OU=Inception/CN=margarida"
+    -subj "/C=PT/ST=Lisbon/L=Lisbon/O=42/OU=Inception/CN=mvalerio"
 
 #Copy the nginx conf file from host to image, in the standard folder where nginx looks for conf files
 COPY conf/nginx.conf /etc/nginx/conf.d/nginx.conf
